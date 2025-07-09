@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Email Spam Detector</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      overflow-x: hidden;
+      background: linear-gradient(135deg, #232526 0%, #414345 100%);
+      position: relative;
+    }
+    .animated-bg {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+      background: url('https://cdn.pixabay.com/photo/2017/01/31/13/14/email-2025847_1280.png') repeat center center/cover, linear-gradient(135deg, #232526cc 0%, #414345cc 100%);
+      opacity: 0.15;
+      animation: bgMove 30s linear infinite alternate;
+    }
+    @keyframes bgMove {
+      0% { background-position: 0 0, center center; }
+      100% { background-position: 100px 100px, center center; }
+    }
+    .detector-card {
+      position: relative;
+      z-index: 1;
+      max-width: 480px;
+      margin: 60px auto 0 auto;
+      background: rgba(255,255,255,0.95);
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+      padding: 2.5rem 2rem 2rem 2rem;
+      animation: fadeInUp 1s cubic-bezier(.23,1.01,.32,1) 0.1s both;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .detector-card h1 {
+      font-size: 2.1rem;
+      font-weight: 700;
+      margin-bottom: 0.2em;
+      color: #232526;
+      text-align: center;
+    }
+    .detector-card h2 {
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: #666;
+      text-align: center;
+      margin-bottom: 1.5em;
+    }
+    .detector-card .form-group {
+      margin-bottom: 1.5em;
+      position: relative;
+    }
+    .detector-card textarea {
+      width: 100%;
+      min-height: 120px;
+      border-radius: 12px;
+      border: 1.5px solid #bdbdbd;
+      padding: 1em;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border 0.2s;
+      resize: vertical;
+      background: #f7f7fa;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+    .detector-card textarea:focus {
+      border: 1.5px solid #4f8cff;
+      outline: none;
+      background: #fff;
+    }
+    .detector-card button.btn-primary {
+      width: 100%;
+      padding: 0.9em 0;
+      border: none;
+      border-radius: 8px;
+      background: linear-gradient(90deg, #4f8cff 0%, #38e6c5 100%);
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(79,140,255,0.12);
+      transition: background 0.2s, transform 0.1s;
+      margin-bottom: 1.2em;
+    }
+    .detector-card button.btn-primary:hover {
+      background: linear-gradient(90deg, #38e6c5 0%, #4f8cff 100%);
+      transform: translateY(-2px) scale(1.03);
+    }
+    #resultContainer {
+      margin-top: 1.5em;
+      animation: fadeInUp 0.7s cubic-bezier(.23,1.01,.32,1) 0.1s both;
+    }
+    .result-header h2 {
+      text-align: center;
+      color: #4f8cff;
+      margin-bottom: 0.7em;
+    }
+    .confidence-bar {
+      margin: 1em 0 1.2em 0;
+      background: #e3f0ff;
+      border-radius: 8px;
+      padding: 0.7em 1em;
+      box-shadow: 0 1px 4px rgba(79,140,255,0.07);
+    }
+    .bar-label {
+      font-size: 0.95em;
+      color: #333;
+      margin-bottom: 0.3em;
+    }
+    .bar-container {
+      width: 100%;
+      height: 16px;
+      background: #d1eaff;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 0.3em;
+    }
+    .bar {
+      height: 100%;
+      background: linear-gradient(90deg, #ff4f6d 0%, #4f8cff 100%);
+      border-radius: 8px;
+      transition: width 0.7s cubic-bezier(.23,1.01,.32,1);
+    }
+    .bar-percentage {
+      font-size: 0.95em;
+      color: #4f8cff;
+      font-weight: 600;
+      text-align: right;
+    }
+    .result-text {
+      text-align: center;
+      font-size: 1.2em;
+      font-weight: 600;
+      margin: 1em 0 0.7em 0;
+      color: #232526;
+      letter-spacing: 0.5px;
+      animation: fadeInUp 0.7s cubic-bezier(.23,1.01,.32,1) 0.2s both;
+    }
+    .analysis-reasons {
+      margin: 1em 0 0.7em 0;
+      background: #f7f7fa;
+      border-radius: 8px;
+      padding: 1em 1.2em;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+    }
+    .analysis-reasons h3 {
+      font-size: 1em;
+      color: #4f8cff;
+      margin-bottom: 0.5em;
+    }
+    .analysis-reasons ul {
+      margin: 0; padding: 0 0 0 1.2em;
+      color: #333;
+      font-size: 0.98em;
+    }
+    .probability-details {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 1em;
+      gap: 1em;
+    }
+    .prob-item {
+      background: #e3f0ff;
+      border-radius: 8px;
+      padding: 0.7em 1em;
+      flex: 1;
+      text-align: center;
+      color: #232526;
+      font-size: 0.98em;
+      font-weight: 500;
+      box-shadow: 0 1px 4px rgba(79,140,255,0.07);
+    }
+    .auth-footer {
+      margin-top: 2em;
+      text-align: center;
+    }
+    .auth-footer .btn-secondary {
+      background: #fff;
+      color: #4f8cff;
+      border: 1.5px solid #4f8cff;
+      border-radius: 6px;
+      padding: 0.5em 1.2em;
+      margin: 0 0.5em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+    .auth-footer .btn-secondary:hover {
+      background: #4f8cff;
+      color: #fff;
+    }
+    @media (max-width: 600px) {
+      .detector-card { padding: 1.2rem 0.5rem; }
+      .probability-details { flex-direction: column; gap: 0.5em; }
+    }
+  </style>
+</head>
+<body>
+  <div class="animated-bg"></div>
+  <div class="detector-card">
+    <h1><i class="fas fa-shield-alt" style="color:#4f8cff;"></i> Email Spam Detector</h1>
+    <h2>Welcome, {{ session['user'] }}! Paste your email below to check for spam.</h2>
+    <form id="spamForm">
+      <div class="form-group">
+        <textarea name="email_content" placeholder="Paste your email content here..." required></textarea>
+        <label for="email_content"><i class="fas fa-envelope-open-text"></i> Email Content</label>
+      </div>
+      <button type="submit" class="btn-primary"><i class="fas fa-search"></i> Check Email</button>
+    </form>
+    <div id="resultContainer" class="hidden">
+      <div class="result-header">
+        <h2><i class="fas fa-robot"></i> Analysis Result</h2>
+      </div>
+      <div class="result-content">
+        <div class="confidence-bar">
+          <div class="bar-label">Spam Probability</div>
+          <div class="bar-container">
+            <div class="bar" id="spamBar"></div>
+          </div>
+          <div class="bar-percentage" id="spamProbability">0%</div>
+        </div>
+        <div class="result-text" id="resultText">Checking...</div>
+        <div class="analysis-reasons">
+          <h3><i class="fas fa-lightbulb"></i> Reasons:</h3>
+          <ul id="reasonsList">
+            <!-- Filled dynamically -->
+          </ul>
+        </div>
+        <div class="probability-details">
+          <div class="prob-item">
+            <span class="label">Spam Probability:</span>
+            <span class="value" id="spamProbValue">0%</span>
+          </div>
+          <div class="prob-item">
+            <span class="label">Ham Probability:</span>
+            <span class="value" id="hamProbValue">100%</span>
+          </div>
+        </div>
+      </div>
+      <div class="auth-footer">
+        <p class="text-center">
+            <a href="/" class="btn-secondary">Back to Home</a>
+            <button onclick="logout()" class="btn-secondary">Logout</button>
+        </p>
+      </div>
+      <script>
+        function logout() {
+            fetch('/logout', {
+                method: 'GET'
+            }).then(() => {
+                window.location.href = '/';
+            });
+        }
+      </script>
+    </div>
+  </div>
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

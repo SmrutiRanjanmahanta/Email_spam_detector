@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Email Spam Detector - Login</title>
+
+    <!-- Load CSS via Flask static -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <div class="ai-logo">
+                    <i class="fas fa-brain"></i>
+                    <h1>AI Email Spam Detector</h1>
+                </div>
+                <p class="tagline">Powered by AI</p>
+            </div>
+            
+            <div class="ai-animation">
+                <div class="ai-brain"></div>
+                <div class="ai-particles"></div>
+            </div>
+
+            <!-- ✅ Login Form -->
+            {% if success %}
+                <div class="alert alert-success" style="margin-bottom: 20px;">
+                    <i class="fas fa-check-circle"></i> {{ success }}
+                </div>
+            {% endif %}
+            <form action="{{ url_for('login') }}" method="POST" class="auth-form" id="loginForm">
+                <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
+                {% if error %}
+                    <div class="alert alert-danger" style="margin-bottom: 20px;">
+                        <i class="fas fa-exclamation-triangle"></i> {{ error }}
+                    </div>
+                {% endif %}
+                <div class="form-group">
+                    <input type="email" id="email" name="email" required placeholder=" ">
+                    <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                    <span class="input-focus"></span>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" name="password" required placeholder=" ">
+                    <label for="password"><i class="fas fa-lock"></i> Password</label>
+                    <span class="input-focus"></span>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p class="text-center">Don't have an account? <a href="{{ url_for('register') }}" class="text-primary">Register Now</a></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="gradient-background"></div>
+    <!-- ✅ JS via Flask static -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
